@@ -1,0 +1,40 @@
+ // This was written for Google Apps Script so the emails are sent through the account that created the Google Sheet. 
+ //To use elsewhere you will have to modify the mail function near the end.
+ 
+ // getting data from our Google Sheet
+var ss = SpreadsheetApp.openByUrl("GOOGLE SHEET URL").getSheetByName("SHEET NAME");
+
+
+    // Create variables with the inforamton for the email message. HTML must be seperate from text for some reason
+    var subject = '';
+    var message = '';
+
+var values = ss.getRange('B1:B').getValues(); //This code gets all member emails in column B from row 1 and below
+var students = [].concat.apply([], values).filter(String); //This gets only rows that has emails and not the empty ones.
+var numOfGroups = Math.round(students.length/25); // how many groups of 25 emails we will send based on total number of members
+
+var run = 1  // sets the number of runs and gets updated each time through the loop
+var startRow = 1;  // set the row of emails to start with and this gets +25 in each run of the loop
+
+
+while (run <= numOfGroups){    // while the run number is below the total number of groups to be created
+let groupOfNames = [];  // create an empty arroy to store 25 emails each time
+
+for(x = startRow; x<= run*25; x++){    // we multiple the run number by 25 to get the end row for each group of 25
+      let studentEmail = ss.getRange('B'+x).getValue();    //we get the student email each time through
+      var group = groupOfNames.push(studentEmail);     // we add that student email to the array or list
+      startRow++;        // we count up tp 25  and then add that to the start row for the next time through the loop
+    }   // end for loop
+
+
+    var group = groupOfNames.join();    // we use join function to make the array into just a string of emails
+
+  MailApp.sendEmail('', subject, message, {htmlBody: message, bcc: group } );   // GMAIL free accounts have limited (<100) emails per day, but other email accounts may allow  you send more
+
+
+    var post = ss.getRange('F'+run).setValue(group);   // optional, we post this list of 25 emails to collumn F of the spreadsheet just to see who was sent emails in each of the batches
+
+    run++;    // we add a one to our run number and then start the while loop over again, until the run is equal to the number of groups we are creating
+
+}  // end while
+
